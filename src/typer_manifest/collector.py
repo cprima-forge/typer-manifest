@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import click
@@ -58,13 +59,18 @@ def _serialize_command(command: click.Command, path: list[str]) -> dict[str, Any
     }
 
     for param in command.params:
+        # Extract default value and ensure it's JSON-serializable
+        default_value = getattr(param, "default", None)
+        if isinstance(default_value, Path):
+            default_value = str(default_value)
+
         entry["params"].append(
             {
                 "name": param.name,
                 "opts": list(getattr(param, "opts", []) or []),
                 "help": (getattr(param, "help", "") or "").strip(),
                 "required": getattr(param, "required", False),
-                "default": getattr(param, "default", None),
+                "default": default_value,
                 "type": param.param_type_name,
             }
         )
