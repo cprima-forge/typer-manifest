@@ -6,11 +6,14 @@ This lightweight utility walks a Typer (Click-based) application and emits a JSO
 
 ## Features
 
+- 🔌 **Pluggable Renderers**: Separate collection from rendering for maximum flexibility
 - 📋 **JSON Export**: Generate complete CLI structure as JSON
 - 📝 **Markdown Rendering**: Create human-readable documentation
+- 🎨 **Custom Formats**: Use functions, classes, or templates for custom output
 - 🔍 **Deep Introspection**: Captures commands, subcommands, parameters, types, defaults, and help text
 - ⚡ **Typer & Click Support**: Works with both Typer and Click applications
 - 🎯 **Fully Typed**: Complete type annotations for better IDE support
+- 🪶 **Zero Extra Dependencies**: Core stays lightweight, integrate Jinja2/YAML in your project
 
 ## Installation
 
@@ -108,6 +111,200 @@ Output:
 # myapp commands
 - myapp hello: Say hello to someone.
 - myapp goodbye: Say goodbye to someone.
+```
+
+## Pluggable Renderers
+
+**New in v0.2.0:** typer-manifest now separates **collection** (introspection) from **rendering** (output formatting), giving you complete control over output formats.
+
+### Architecture
+
+The package is organized into two independent layers:
+
+1. **Collector** (`collect_manifest`): Walks your CLI app and returns a pure Python dictionary
+2. **Renderers**: Transform the manifest dict into various output formats
+
+### New API (Recommended)
+
+```python
+from typer_manifest import collect_manifest, render_manifest
+
+# Collect once
+manifest = collect_manifest(app, "myapp")
+
+# Render in multiple formats
+json_output = render_manifest(manifest, format="json")
+markdown_output = render_manifest(manifest, format="markdown")
+compact_output = render_manifest(manifest, format="compact")
+```
+
+### Built-in Renderers
+
+**JsonRenderer** - Formatted JSON (customizable indentation):
+```python
+from typer_manifest import JsonRenderer, collect_manifest
+
+manifest = collect_manifest(app)
+renderer = JsonRenderer(indent=4, sort_keys=True)
+output = renderer(manifest)
+```
+
+**MarkdownRenderer** - Hierarchical bullet list with help text:
+```python
+from typer_manifest import MarkdownRenderer
+
+renderer = MarkdownRenderer()
+output = renderer(manifest)
+# Output:
+# # myapp commands
+# - myapp hello: Say hello
+# - myapp goodbye: Say goodbye
+```
+
+**CompactMarkdownRenderer** - Command paths only, no help text:
+```python
+from typer_manifest import CompactMarkdownRenderer
+
+renderer = CompactMarkdownRenderer()
+output = renderer(manifest)
+# Output:
+# # myapp commands
+# - myapp hello
+# - myapp goodbye
+```
+
+### Custom Renderers
+
+**Option 1: Simple Function**
+```python
+def my_custom_renderer(manifest):
+    lines = [f"CLI: {manifest['name']}", "Commands:"]
+    for cmd in manifest['commands']:
+        lines.append(f"  • {cmd['name']}")
+    return "\n".join(lines)
+
+manifest = collect_manifest(app)
+output = render_manifest(manifest, renderer=my_custom_renderer)
+```
+
+**Option 2: Renderer Class**
+```python
+class TableRenderer:
+    """Render as a simple table."""
+
+    def __call__(self, manifest):
+        lines = ["Command | Help", "--------|-----"]
+        for cmd in manifest['commands']:
+            lines.append(f"{cmd['name']} | {cmd['help']}")
+        return "\n".join(lines)
+
+output = render_manifest(manifest, renderer=TableRenderer())
+```
+
+**Option 3: Template String**
+```python
+template = """
+# CLI Documentation
+
+Application: {{ manifest }}
+
+Generated automatically.
+"""
+
+output = render_manifest(manifest, template=template)
+```
+
+### User-Space Integration (No Dependencies Required!)
+
+The core package stays lightweight with **zero extra dependencies**. For advanced templating, add your preferred libraries:
+
+**With Jinja2:**
+```python
+from jinja2 import Template
+from typer_manifest import collect_manifest
+
+manifest = collect_manifest(app)
+
+template = Template("""
+# {{ manifest.name }} CLI Reference
+
+{% for cmd in manifest.commands %}
+## {{ cmd.path }}
+
+{{ cmd.help }}
+
+**Parameters:**
+{% for param in cmd.params %}
+- `{{ param.name }}`: {{ param.help }} (default: {{ param.default }})
+{% endfor %}
+{% endfor %}
+""")
+
+print(template.render(manifest=manifest))
+```
+
+**With YAML:**
+```python
+import yaml
+from typer_manifest import collect_manifest
+
+manifest = collect_manifest(app)
+
+# Custom YAML renderer
+def yaml_renderer(m):
+    return yaml.dump(m, default_flow_style=False)
+
+output = render_manifest(manifest, renderer=yaml_renderer)
+```
+
+**With TOML:**
+```python
+import toml
+from typer_manifest import collect_manifest
+
+manifest = collect_manifest(app)
+
+def toml_renderer(m):
+    return toml.dumps(m)
+
+output = render_manifest(manifest, renderer=toml_renderer)
+```
+
+### Renderer Protocol
+
+Any callable that accepts a `Manifest` dict and returns a string is a valid renderer:
+
+```python
+from typing import Protocol
+from typer_manifest import Manifest
+
+class Renderer(Protocol):
+    def __call__(self, manifest: Manifest) -> str:
+        ...
+```
+
+This means functions, classes with `__call__`, lambdas, and any callable work automatically!
+
+### Migration from Old API
+
+The old API still works for backward compatibility:
+
+```python
+# Old API (still supported)
+from typer_manifest import build_manifest, render_manifest_list
+
+manifest = build_manifest(app, "myapp")
+markdown = render_manifest_list(manifest)
+```
+
+New code should use:
+
+```python
+# New API (recommended)
+from typer_manifest import collect_manifest, render_manifest
+
+manifest = collect_manifest(app, "myapp")
+markdown = render_manifest(manifest, format="markdown")
 ```
 
 ## Advanced Usage

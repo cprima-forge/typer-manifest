@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "typer-manifest"
-version = "0.1.0"
-description = "Introspect Typer apps and export their full command manifest."
+version = "0.2.0"
+description = "Introspect Typer apps and export their full command manifest with pluggable renderers."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Christian Prior-Mamulyan" }]
