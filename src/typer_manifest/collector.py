@@ -57,6 +57,23 @@ def _as_click_command(app: Any) -> click.Command:
     raise TypeError("Unsupported CLI application type; expected Click command or Typer app.")
 
 
+def _is_group(command: object) -> bool:
+    """Whether a command carries subcommands.
+
+    Deliberately duck-typed rather than ``isinstance(command, click.Group)``.
+    Typer vendors its own Click internals: as of typer 0.27 with click 8.5,
+    ``typer.core.TyperGroup`` derives from ``typer._click.core.Command`` and is
+    *not* a subclass of ``click.Group``, so the isinstance check returned False
+    for every Typer app with more than one command. The group was then
+    serialised as a leaf, and its subcommands vanished from the manifest --
+    silently, since a manifest with one entry is still a valid manifest.
+
+    Asking whether it can list its subcommands survives that split, and any
+    future one: it tests the capability actually used on the next line.
+    """
+    return callable(getattr(command, "list_commands", None))
+
+
 def _serialize_command(command: click.Command, path: list[str]) -> dict[str, Any]:
     """Recursively serialize a Click command and its subcommands.
 
@@ -92,7 +109,7 @@ def _serialize_command(command: click.Command, path: list[str]) -> dict[str, Any
             }
         )
 
-    if isinstance(command, click.Group):
+    if _is_group(command):
         ctx = click.Context(command)
         sub_commands = command.list_commands(ctx) or []
         for sub_name in sub_commands:
@@ -142,7 +159,7 @@ def collect_manifest(app: Any, root_command_name: str | None = None) -> Manifest
 
     manifest: Manifest = {"name": root_name, "commands": []}
 
-    if isinstance(click_command, click.Group):
+    if _is_group(click_command):
         ctx = click.Context(click_command)
         for name in click_command.list_commands(ctx) or []:
             sub = click_command.get_command(ctx, name)

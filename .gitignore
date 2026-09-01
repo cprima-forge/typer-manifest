@@ -132,3 +132,7 @@ dmypy.json
 
 # Project specific
 PLAN.md
+
+# Resolved lock file. Not tracked, matching cpmf-uiprc-diag: this is a
+# library, so consumers resolve their own dependencies.
+uv.lock
