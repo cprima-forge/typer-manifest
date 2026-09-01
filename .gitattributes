@@ -1,0 +1,7 @@
+# Normalise line endings on commit.
+#
+# Without this, and with core.autocrlf=false on Windows, a file rewritten by
+# any tool picks up CRLF and git reports every line as changed. That happened
+# to README.md: 1007 lines of diff hiding 20 real ones, which is how a
+# licence correction sat unnoticed in the working tree.
+* text=auto

@@ -1,5 +1,10 @@
 # typer-manifest
 
+[![PyPI version](https://badge.fury.io/py/typer-manifest.svg)](https://pypi.org/project/typer-manifest/)
+[![Python versions](https://img.shields.io/pypi/pyversions/typer-manifest.svg)](https://pypi.org/project/typer-manifest/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 Export [Typer](https://github.com/fastapi/typer) CLI structures as machine-readable manifests.
 
 This lightweight utility walks a Typer (Click-based) application and emits a JSON document describing all commands, subcommands, and parameters — useful for documentation, testing, and automated CLI introspection.
@@ -482,7 +487,21 @@ ruff check src/ tests/
 
 ## License
 
-MIT © Christian Prior-Mamulyan
+Copyright 2024 Christian Prior-Mamulyan
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## Contributing
 
