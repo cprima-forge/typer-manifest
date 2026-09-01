@@ -1,3 +1,17 @@
+# Copyright 2024 Christian Prior-Mamulyan
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Typer Manifest - Introspect Typer apps and export their command structure.
 
 This package provides a pluggable system for collecting CLI structure information
@@ -17,6 +31,9 @@ Legacy API (backward compatibility):
 
 # New modular API
 from .collector import collect_manifest
+
+# Legacy API for backward compatibility
+from .core import build_manifest, render_manifest_list, write_manifest
 from .renderers import (
     CompactMarkdownRenderer,
     JsonRenderer,
@@ -25,10 +42,7 @@ from .renderers import (
 )
 from .types import Manifest, Renderer
 
-# Legacy API for backward compatibility
-from .core import build_manifest, render_manifest_list, write_manifest
-
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 __all__ = (
     # New API (recommended)

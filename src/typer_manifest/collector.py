@@ -1,3 +1,17 @@
+# Copyright 2024 Christian Prior-Mamulyan
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Collection logic for introspecting Typer/Click applications."""
 
 from __future__ import annotations
@@ -12,9 +26,12 @@ from .types import Manifest
 try:  # pragma: no cover - Typer optional
     from typer import Typer
     from typer.main import get_command as typer_get_command
+
+    TYPER_AVAILABLE = True
 except ImportError:  # pragma: no cover
-    Typer = None  # type: ignore[misc, assignment]
-    typer_get_command = None  # type: ignore[misc, assignment]
+    Typer = None  # type: ignore[assignment, misc]
+    typer_get_command = None  # type: ignore[assignment]
+    TYPER_AVAILABLE = False
 
 
 def _as_click_command(app: Any) -> click.Command:
@@ -31,12 +48,12 @@ def _as_click_command(app: Any) -> click.Command:
     """
     if isinstance(app, click.Command):
         return app
-    if Typer is not None and isinstance(app, Typer):
+    if TYPER_AVAILABLE and Typer is not None and isinstance(app, Typer):
         # Use typer.main.get_command to get the Click command without invoking the app
         if typer_get_command is not None:
-            return typer_get_command(app)  # type: ignore[misc]
+            return typer_get_command(app)
         # Fallback for older typer versions
-        return app()  # type: ignore[operator]
+        return app()
     raise TypeError("Unsupported CLI application type; expected Click command or Typer app.")
 
 
@@ -75,7 +92,7 @@ def _serialize_command(command: click.Command, path: list[str]) -> dict[str, Any
             }
         )
 
-    if isinstance(command, (click.MultiCommand, click.Group)):
+    if isinstance(command, click.Group):
         ctx = click.Context(command)
         sub_commands = command.list_commands(ctx) or []
         for sub_name in sub_commands:
@@ -116,15 +133,16 @@ def collect_manifest(app: Any, root_command_name: str | None = None) -> Manifest
         1
     """
     click_command = _as_click_command(app)
-    root_name = (
+    root_name = str(
         root_command_name
         or getattr(click_command, "name", None)
-        or getattr(app, "name", "cli")
+        or getattr(app, "name", None)
+        or "cli"
     )
 
     manifest: Manifest = {"name": root_name, "commands": []}
 
-    if isinstance(click_command, (click.MultiCommand, click.Group)):
+    if isinstance(click_command, click.Group):
         ctx = click.Context(click_command)
         for name in click_command.list_commands(ctx) or []:
             sub = click_command.get_command(ctx, name)

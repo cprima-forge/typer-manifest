@@ -217,7 +217,7 @@ def test_render_manifest_invalid_format():
 
     try:
         render_manifest(manifest, format="invalid")
-        assert False, "Should have raised ValueError"
+        raise AssertionError("Should have raised ValueError")
     except ValueError as e:
         assert "Unknown format" in str(e)
         assert "invalid" in str(e)
@@ -226,7 +226,7 @@ def test_render_manifest_invalid_format():
 def test_render_manifest_priority_renderer_over_template():
     """Test that custom renderer takes priority over template."""
 
-    def my_renderer(manifest):
+    def my_renderer(manifest):  # noqa: ARG001
         return "Custom"
 
     manifest = {"name": "test", "commands": []}
@@ -259,7 +259,7 @@ def test_renderer_protocol_with_class():
     """Test that a class with __call__ implements the Renderer protocol."""
 
     class MyRenderer:
-        def __call__(self, manifest):
+        def __call__(self, manifest):  # noqa: ARG002
             return "rendered"
 
     renderer = MyRenderer()
